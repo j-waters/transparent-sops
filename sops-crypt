@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -e
+
+# sops-crypt
+# Usage: ./sops-crypt init
+
+# Check dependencies
+if ! command -v sops >/dev/null 2>&1; then
+    echo "Error: 'sops' is not installed or not in PATH."
+    exit 1
+fi
+
+COMMAND="$1"
+
+
+if [ "$COMMAND" = "init" ]; then
+    # Resolve absolute path to the filters directory where THIS script is located
+    # Handle symlinks to ensure we find the real directory
+    SOURCE="${BASH_SOURCE[0]}"
+    while [ -h "$SOURCE" ]; do
+        DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+        SOURCE="$(readlink "$SOURCE")"
+        [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+    done
+    SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+    
+    FILTERS_DIR="$SCRIPT_DIR/filters"
+
+    echo "Initializing sops-crypt for this repository..."
+    echo "Using filters from: $FILTERS_DIR"
+
+    if [ ! -d "$FILTERS_DIR" ]; then
+        echo "Error: filters directory not found at $FILTERS_DIR"
+        exit 1
+    fi
+
+    # Configure git
+    git config filter.sops-crypt.clean "$FILTERS_DIR/clean_filter.sh"
+    git config filter.sops-crypt.smudge "$FILTERS_DIR/smudge_filter.sh"
+    git config filter.sops-crypt.required true
+    git config diff.sops-crypt.textconv "$FILTERS_DIR/diff_filter.sh"
+
+    echo "Configuration applied."
+    echo "Add the following to your .gitattributes to use it:"
+    echo "* filter=sops-crypt diff=sops-crypt"
+
+elif [ "$COMMAND" = "uninstall" ]; then
+    echo "Uninstalling sops-crypt from this repository..."
+    
+    # Remove git config sections
+    # Suppress output if section doesn't exist
+    git config --remove-section filter.sops-crypt 2>/dev/null || true
+    git config --remove-section diff.sops-crypt 2>/dev/null || true
+
+    echo "Configuration removed."
+    echo "Remember to remove sops-crypt attributes from your .gitattributes file."
+
+else
+    echo "Usage: $0 {init|uninstall}"
+    exit 1
+fi
