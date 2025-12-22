@@ -81,3 +81,20 @@ sops-crypt uninstall
 - **Clean Filter** (`git add`): Streams file content to `sops --encrypt`.
 - **Smudge Filter** (`git checkout`): Streams encrypted content to `sops --decrypt`. **Strict Safe**: Fails if decryption fails.
 - **Diff Filter** (`git diff`): Decrypts temporary blobs for display. Falls back to raw content if decryption fails (e.g., comparing against a plaintext worktree file).
+
+# Development
+
+## Release Process
+
+Releases are automated via GitHub Actions.
+
+1.  **Tag a new version**:
+    ```bash
+    git tag v0.1.0
+    git push origin v0.1.0
+    ```
+
+2.  **Automation**:
+    - The `Release` workflow creates a GitHub Release with source archives.
+    - It sends the new version's SHA256 sum to the Homebrew Formula in this repository.
+    - It commits the updated `Formula/transparent-sops.rb` back to the `main` branch.
