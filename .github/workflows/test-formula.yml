@@ -1,0 +1,30 @@
+name: Test Homebrew Formula
+
+on:
+  push:
+    paths:
+      - 'Formula/**'
+      - '.github/workflows/test-formula.yml'
+  pull_request:
+    paths:
+      - 'Formula/**'
+      - '.github/workflows/test-formula.yml'
+
+jobs:
+  test-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install sops (dependency)
+        run: brew install sops
+
+      - name: Test Formula Installation
+        run: |
+          brew install --verbose --build-from-source ./Formula/transparent-sops.rb
+          test -f $(brew --prefix transparent-sops)/bin/sops-crypt

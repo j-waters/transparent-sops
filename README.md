@@ -20,13 +20,29 @@ Inspired by `git-crypt` and `transcrypt`.
 
 ## Installation
 
-To install `transparent-sops` system-wide:
+#### Homebrew (macOS/Linux)
+
+You can install `transparent-sops` via a custom Homebrew tap:
 
 ```bash
-sudo make install
+# Add the tap
+brew tap jcwaters/transparent-sops
+
+# Install the tool
+brew install transparent-sops
 ```
 
-This installs the necessary scripts to `/usr/local/lib/transparent-sops` and creates a symlink in `/usr/local/bin`.
+#### Manual Installation
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/jcwaters/transparent-sops.git
+   cd transparent-sops
+   ```
+2. Run installation:
+   ```bash
+   ./sops-crypt init
+   ```
 
 ## Usage
 

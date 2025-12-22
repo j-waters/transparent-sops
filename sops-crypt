@@ -24,7 +24,20 @@ if [ "$COMMAND" = "init" ]; then
     done
     SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
     
-    FILTERS_DIR="$SCRIPT_DIR/filters"
+    # Locate filters directory
+    # 1. Local development / simple install: ./filters
+    # 2. Homebrew / System install: ../libexec/filters (relative to bin/)
+    if [ -d "$SCRIPT_DIR/filters" ]; then
+        FILTERS_DIR="$SCRIPT_DIR/filters"
+    elif [ -d "$SCRIPT_DIR/../libexec/filters" ]; then
+        FILTERS_DIR="$(cd "$SCRIPT_DIR/../libexec/filters" && pwd)"
+    else
+        echo "Error: Could not find 'filters' directory."
+        echo "Searched:"
+        echo "  - $SCRIPT_DIR/filters"
+        echo "  - $SCRIPT_DIR/../libexec/filters"
+        exit 1
+    fi
 
     echo "Initializing sops-crypt for this repository..."
     echo "Using filters from: $FILTERS_DIR"

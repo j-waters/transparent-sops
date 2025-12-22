@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          files: |
+            sops-crypt
+            filters/*
+            README.md
+            LICENSE
+
+      - name: Update Homebrew Formula
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          URL="https://github.com/${{ github.repository }}/archive/refs/tags/${VERSION}.tar.gz"
+          
+          echo "Waiting for archives to be available..."
+          sleep 10
+          
+          echo "Downloading $URL to calculate SHA256..."
+          echo "Downloading $URL to calculate SHA256..."
+          curl -fL -o release.tar.gz "$URL"
+          SHA256=$(sha256sum release.tar.gz | awk '{print $1}')
+          
+          echo "SHA256: $SHA256"
+          
+          # Update Formula
+          sed -i "s|url \".*\"|url \"$URL\"|" Formula/transparent-sops.rb
+          sed -i "s|sha256 \".*\"|sha256 \"$SHA256\"|" Formula/transparent-sops.rb
+          sed -i "s|homepage \".*\"|homepage \"https://github.com/${{ github.repository }}\"|" Formula/transparent-sops.rb
+          
+          # Check changes
+          git diff
+          
+          # Config git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Commit and Push
+          if [[ -n $(git status -s) ]]; then
+            git add Formula/transparent-sops.rb
+            git commit -m "Update Homebrew formula for $VERSION"
+            git push origin HEAD:main
+          else
+            echo "No changes to commit."
+          fi
