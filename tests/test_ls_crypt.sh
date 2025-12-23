@@ -1,26 +1,14 @@
 #!/usr/bin/env bash
+
 set -e
 
-# LS-CRYPT test for transparent-sops
+source "$(dirname "$0")/common.sh"
 
-TEST_DIR=$(mktemp -d -t transparent-sops-ls-test.XXXXXX)
-INITIAL_DIR=$(pwd)
-: "${TOOL_PATH:="$(pwd)/transparent-sops"}"
-
-echo "Running ls-crypt tests in $TEST_DIR"
-
-cleanup() {
-    echo "Cleaning up..."
-    rm -rf "$TEST_DIR"
-}
-trap cleanup EXIT
-
+setup_test_dir "transparent-sops-ls"
 cd "$TEST_DIR" || exit 1
 
 # 1. Initialize Git Repo
-git init
-git config user.name "Test User"
-git config user.email "test@example.com"
+setup_git
 
 # 2. Setup .gitattributes
 echo "*.secret filter=sops-crypt diff=sops-crypt" > .gitattributes
@@ -54,4 +42,3 @@ if echo "$OUTPUT" | grep -q "normal.txt" || echo "$OUTPUT" | grep -q "ignore.kee
 fi
 
 echo "LS-CRYPT TEST PASSED"
-cd "$INITIAL_DIR"

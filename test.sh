@@ -9,10 +9,10 @@ PASSED_TESTS=()
 
 echo "Running all tests..."
 
-for test_script in tests/*.sh; do
+for test_script in tests/test_*.sh; do
     echo "------------------------------------------------"
     echo "Running $test_script..."
-    if ./"$test_script"; then
+    if bash "$test_script"; then
         PASSED_TESTS+=("$test_script")
     else
         FAILED_TESTS+=("$test_script")

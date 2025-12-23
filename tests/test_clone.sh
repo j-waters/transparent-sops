@@ -1,38 +1,19 @@
 #!/usr/bin/env bash
+
 set -e
 
-# Clone test for transparent-sops
-# This test verifies behavior when cloning a repo already configured with transparent-sops
+source "$(dirname "$0")/common.sh"
 
-TEST_DIR=$(mktemp -d -t transparent-sops-clone-test.XXXXXX)
-INITIAL_DIR=$(pwd)
-: "${TOOL_PATH:="$(pwd)/transparent-sops"}"
-
-echo "Running clone tests in $TEST_DIR"
-
-cleanup() {
-    echo "Cleaning up..."
-    rm -rf "$TEST_DIR"
-}
-trap cleanup EXIT
+setup_test_dir "transparent-sops-clone"
 
 # 1. Setup minimal requirements
-# Ensure no env vars pollute the test
-unset SOPS_AGE_RECIPIENTS
-unset SOPS_AGE_KEY_FILE
-
-echo "Generating Age key..."
-age-keygen -o "$TEST_DIR/key.txt"
-export SOPS_AGE_KEY_FILE="$TEST_DIR/key.txt"
-PUBLIC_KEY=$(grep "public key" "$TEST_DIR/key.txt" | awk '{print $NF}')
+setup_age
 
 # 2. Setup "Source" Repository
 SOURCE_DIR="$TEST_DIR/source-repo"
 mkdir -p "$SOURCE_DIR"
 cd "$SOURCE_DIR"
-git init
-git config user.name "Test User"
-git config user.email "test@example.com"
+setup_git
 
 # 3. Configure SOPS in source
 cat > .sops.yaml <<EOF
@@ -95,4 +76,3 @@ else
 fi
 
 echo "CLONE TEST COMPLETED"
-cd "$INITIAL_DIR"

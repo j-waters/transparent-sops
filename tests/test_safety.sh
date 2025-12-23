@@ -1,27 +1,14 @@
 #!/usr/bin/env bash
+
 set -e
 
-# Safety test for transparent-sops
-# Verifies that init fails if working tree is dirty
+source "$(dirname "$0")/common.sh"
 
-TEST_DIR=$(mktemp -d -t transparent-sops-safety-test.XXXXXX)
-INITIAL_DIR=$(pwd)
-: "${TOOL_PATH:="$(pwd)/transparent-sops"}"
-
-echo "Running safety tests in $TEST_DIR"
-
-cleanup() {
-    echo "Cleaning up..."
-    rm -rf "$TEST_DIR"
-}
-trap cleanup EXIT
-
+setup_test_dir "transparent-sops-safety"
 cd "$TEST_DIR" || exit 1
 
 # 1. Initialize Git Repo
-git init
-git config user.name "Test User"
-git config user.email "test@example.com"
+setup_git
 
 # 2. Create a dirty file
 echo "dirty" > dirty.txt
@@ -48,4 +35,3 @@ else
 fi
 
 echo "SAFETY TEST PASSED"
-cd "$INITIAL_DIR"

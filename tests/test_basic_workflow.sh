@@ -1,36 +1,17 @@
 #!/usr/bin/env bash
+
 set -e
 
-# Test script for transparent-sops
+source "$(dirname "$0")/common.sh"
 
-TEST_DIR=$(mktemp -d -t transparent-sops-test.XXXXXX)
-INITIAL_DIR=$(pwd)
-: "${TOOL_PATH:="$(pwd)/transparent-sops"}"
-
-echo "Running tests in $TEST_DIR"
-
-cleanup() {
-    echo "Cleaning up..."
-    rm -rf "$TEST_DIR"
-}
-trap cleanup EXIT
-
+setup_test_dir "transparent-sops-basic"
 cd "$TEST_DIR" || exit 1
 
 # 1. Setup minimal requirements
-# Ensure no env vars pollute the test
-unset SOPS_AGE_RECIPIENTS
-unset SOPS_AGE_KEY_FILE
-
-echo "Generating Age key..."
-age-keygen -o key.txt
-export SOPS_AGE_KEY_FILE="$TEST_DIR/key.txt"
-PUBLIC_KEY=$(grep "public key" key.txt | awk '{print $NF}')
+setup_age
 
 # 2. Initialize Git Repo
-git init
-git config user.name "Test User"
-git config user.email "test@example.com"
+setup_git
 echo "key.txt" > .gitignore
 git add .gitignore
 git commit -m "Ignore keys"
@@ -112,5 +93,3 @@ else
 fi
 
 echo "ALL TESTS PASSED"
-cd "$INITIAL_DIR"
-rm -rf "$TEST_DIR"
