@@ -10,6 +10,17 @@ if ! command -v sops >/dev/null 2>&1; then
     exit 1
 fi
 
+list_encrypted_files() {
+    # Find files with the sops-crypt filter
+    # Use --stdin for performance on larger repos
+    git ls-files | git check-attr --stdin filter | while IFS= read -r line; do
+        FILE="${line%: filter: sops-crypt}"
+        if [ "$FILE" != "$line" ]; then
+            echo "$FILE"
+        fi
+    done
+}
+
 COMMAND="$1"
 
 if [ "$COMMAND" = "init" ]; then
@@ -31,7 +42,27 @@ if [ "$COMMAND" = "init" ]; then
         CMD="$SCRIPT_PATH"
     fi
 
+    # Safety check: ensure working tree is clean
+    if [ -n "$(git status --porcelain)" ]; then
+        echo "Error: Working tree is not clean. Please commit or stash your changes before initializing."
+        exit 1
+    fi
+
     echo "Initializing transparent-sops for this repository..."
+
+    # Check if filters were already configured
+    WAS_CONFIGURED=$(git config --get filter.sops-crypt.smudge || true)
+
+    FILES_TO_RESMUDGE=()
+    if [ -z "$WAS_CONFIGURED" ]; then
+        # Find files with the sops-crypt filter that are currently clean
+        while IFS= read -r FILE; do
+            # Check if file is clean and exists
+            if [ -f "$FILE" ] && [ -z "$(git status --porcelain -- "$FILE")" ]; then
+                FILES_TO_RESMUDGE+=("$FILE")
+            fi
+        done < <(list_encrypted_files)
+    fi
 
     # Configure git
     git config filter.sops-crypt.clean "$CMD filter clean"
@@ -40,7 +71,19 @@ if [ "$COMMAND" = "init" ]; then
     git config diff.sops-crypt.textconv "$CMD filter diff"
 
     echo "Configuration applied."
-    echo "Add the following to your .gitattributes to use it:"
+
+    if [ ${#FILES_TO_RESMUDGE[@]} -gt 0 ]; then
+        echo "Detected first-time initialization in a repo with filtered files."
+        echo "Decrypting clean files..."
+        for FILE in "${FILES_TO_RESMUDGE[@]}"; do
+            echo "  $FILE"
+            # Force checkout to trigger smudge filter
+            git checkout HEAD -- "$FILE" >/dev/null 2>&1
+        done
+        echo "Decryption complete."
+    fi
+
+    echo "Add the following to your .gitattributes to use it (if not already present):"
     echo "* filter=sops-crypt diff=sops-crypt"
 
 elif [ "$COMMAND" = "filter" ]; then
@@ -80,7 +123,10 @@ elif [ "$COMMAND" = "uninstall" ]; then
     echo "Configuration removed."
     echo "Remember to remove sops-crypt attributes from your .gitattributes file."
 
+elif [ "$COMMAND" = "ls-crypt" ]; then
+    list_encrypted_files
+
 else
-    echo "Usage: $0 {init|uninstall|filter}"
+    echo "Usage: $0 {init|uninstall|ls-crypt|filter}"
     exit 1
 fi

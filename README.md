@@ -28,14 +28,26 @@ You can install `transparent-sops` via my custom Homebrew tap:
 brew install j-waters/tap/transparent-sops
 ```
 
-### Direct Installation
+### From Source (Makefile)
 
-1. **Download and install**:
+1. **Clone the repository**:
    ```bash
-   curl -Lo transparent-sops https://raw.githubusercontent.com/j-waters/transparent-sops/main/transparent-sops
-   sudo install -m 755 transparent-sops /usr/local/bin/transparent-sops
-   rm transparent-sops
+   git clone https://github.com/j-waters/transparent-sops.git
+   cd transparent-sops
    ```
+
+2. **Install via Makefile**:
+   ```bash
+   sudo make install
+   ```
+
+### From Source (Manual)
+
+```bash
+curl -Lo transparent-sops https://raw.githubusercontent.com/j-waters/transparent-sops/main/transparent-sops
+sudo install -m 755 transparent-sops /usr/local/bin/transparent-sops
+rm transparent-sops
+```
 
 ## Usage
 
@@ -61,6 +73,12 @@ config/prod.yaml.secret filter=sops-crypt diff=sops-crypt
     - `git checkout`: Files are automatically decrypted.
     - `git diff`: Shows plaintext diffs.
 
+5. **List Encrypted Files**:
+   ```bash
+   transparent-sops ls-crypt
+   ```
+   Lists all files in the current repository that are being tracked by the `sops-crypt` filter.
+
 ## Uninstall
 
 To remove the git configuration settings:
@@ -84,6 +102,8 @@ but will not uninstall the tool from your system or remove any filters from your
 ## Testing
 
 ```bash
+make test
+# or
 ./test.sh
 ```
 
