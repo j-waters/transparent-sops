@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-# sops-crypt
-# Usage: ./sops-crypt init
+# transparent-sops
+# Usage: ./transparent-sops init
 
 # Check dependencies
 if ! command -v sops >/dev/null 2>&1; then
@@ -39,7 +39,7 @@ if [ "$COMMAND" = "init" ]; then
         exit 1
     fi
 
-    echo "Initializing sops-crypt for this repository..."
+    echo "Initializing transparent-sops for this repository..."
     echo "Using filters from: $FILTERS_DIR"
 
     if [ ! -d "$FILTERS_DIR" ]; then
@@ -58,7 +58,7 @@ if [ "$COMMAND" = "init" ]; then
     echo "* filter=sops-crypt diff=sops-crypt"
 
 elif [ "$COMMAND" = "uninstall" ]; then
-    echo "Uninstalling sops-crypt from this repository..."
+    echo "Uninstalling transparent-sops from this repository..."
     
     # Remove git config sections
     # Suppress output if section doesn't exist

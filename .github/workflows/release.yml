@@ -19,10 +19,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           generate_release_notes: true
-          files: |
-            sops-crypt
-            filters/*
-            README.md
 
       - name: Bump Homebrew formula
         uses: dawidd6/action-homebrew-bump-formula@v3

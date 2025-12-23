@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-# Test script for sops-crypt
+# Test script for transparent-sops
 
-TEST_DIR=$(mktemp -d -t sops-crypt-test.XXXXXX)
+TEST_DIR=$(mktemp -d -t transparent-sops-test.XXXXXX)
 INITIAL_DIR=$(pwd)
-: "${TOOL_PATH:="$(pwd)/sops-crypt"}"
+: "${TOOL_PATH:="$(pwd)/transparent-sops"}"
 
 echo "Running tests in $TEST_DIR"
 
@@ -39,8 +39,8 @@ creation_rules:
     age: $PUBLIC_KEY
 EOF
 
-# 4. Initialize sops-crypt
-echo "Initializing sops-crypt..."
+# 4. Initialize transparent-sops
+echo "Initializing transparent-sops..."
 "$TOOL_PATH" init
 
 # 5. Setup .gitattributes

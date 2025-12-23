@@ -37,14 +37,14 @@ brew install jcwaters/tap/transparent-sops
    ```
 2. Run installation:
    ```bash
-   ./sops-crypt init
+   ./transparent-sops init
    ```
 
 ## Usage
 
 1. **Initialize**: In any repo you want to use this with:
    ```bash
-   sops-crypt init
+   transparent-sops init
    ```
 
 2. **Configure Keys**: Ensure you have a valid `.sops.yaml` in your repository root and that you have access to the valid keys (e.g., export `SOPS_AGE_KEY_FILE`).
@@ -69,7 +69,7 @@ config/prod.yaml.secret filter=sops-crypt diff=sops-crypt
 To remove the git configuration settings:
 
 ```bash
-sops-crypt uninstall
+transparent-sops uninstall
 ```
 
 Note that this will remove the git configuration settings from the current repository, 
