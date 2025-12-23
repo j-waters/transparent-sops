@@ -72,6 +72,10 @@ To remove the git configuration settings:
 sops-crypt uninstall
 ```
 
+Note that this will remove the git configuration settings from the current repository, 
+but will not uninstall the tool from your system or remove any filters from your 
+`.gitattributes` file.
+
 ## How it Works
 
 - **Clean Filter** (`git add`): Streams file content to `sops --encrypt`.
