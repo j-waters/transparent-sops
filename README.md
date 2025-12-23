@@ -20,13 +20,25 @@ Inspired by `git-crypt` and `transcrypt`.
 
 ## Installation
 
-To install `transparent-sops` system-wide:
+#### Homebrew (macOS/Linux)
+
+You can install `transparent-sops` via my custom Homebrew tap:
 
 ```bash
-sudo make install
+brew install jcwaters/tap/transparent-sops
 ```
 
-This installs the necessary scripts to `/usr/local/lib/transparent-sops` and creates a symlink in `/usr/local/bin`.
+#### Manual Installation
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/jcwaters/transparent-sops.git
+   cd transparent-sops
+   ```
+2. Run installation:
+   ```bash
+   ./sops-crypt init
+   ```
 
 ## Usage
 
@@ -65,3 +77,19 @@ sops-crypt uninstall
 - **Clean Filter** (`git add`): Streams file content to `sops --encrypt`.
 - **Smudge Filter** (`git checkout`): Streams encrypted content to `sops --decrypt`. **Strict Safe**: Fails if decryption fails.
 - **Diff Filter** (`git diff`): Decrypts temporary blobs for display. Falls back to raw content if decryption fails (e.g., comparing against a plaintext worktree file).
+
+# Development
+
+## Release Process
+
+Releases are automated via GitHub Actions.
+
+1.  **Tag a new version**:
+    ```bash
+    git tag v0.1.0
+    git push origin v0.1.0
+    ```
+
+2.  **Automation**:
+    - The `Release` workflow creates a GitHub Release with source archives.
+    - It automatically bumps the Homebrew formula in the `jcwaters/homebrew-tap` repository.

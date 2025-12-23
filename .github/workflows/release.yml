@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          files: |
+            sops-crypt
+            filters/*
+            README.md
+
+      - name: Bump Homebrew formula
+        uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          # Required, custom GitHub access token with the 'public_repo' and 'workflow' scopes
+          token: ${{secrets.TOKEN}}
+          # Optional, defaults to homebrew/core
+          tap: jcwaters/tap
+          # Formula name, required
+          formula: transparent-sops
