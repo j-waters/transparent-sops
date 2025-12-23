@@ -12,10 +12,8 @@ fi
 
 COMMAND="$1"
 
-
 if [ "$COMMAND" = "init" ]; then
     # Resolve absolute path to the filters directory where THIS script is located
-    # Handle symlinks to ensure we find the real directory
     SOURCE="${BASH_SOURCE[0]}"
     while [ -h "$SOURCE" ]; do
         DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
@@ -23,45 +21,59 @@ if [ "$COMMAND" = "init" ]; then
         [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
     done
     SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-    
-    # Locate filters directory
-    # 1. Local development / simple install: ./filters
-    # 2. Homebrew / System install: ../libexec/filters (relative to bin/)
-    if [ -d "$SCRIPT_DIR/filters" ]; then
-        FILTERS_DIR="$SCRIPT_DIR/filters"
-    elif [ -d "$SCRIPT_DIR/../libexec/filters" ]; then
-        FILTERS_DIR="$(cd "$SCRIPT_DIR/../libexec/filters" && pwd)"
+    SCRIPT_PATH="$SCRIPT_DIR/$(basename "$SOURCE")"
+
+    # Determine command to use in git config
+    # If transparent-sops is in PATH and points to this script, we can use just the name
+    if command -v transparent-sops >/dev/null 2>&1 && [ "$(command -v transparent-sops)" = "$SCRIPT_PATH" ]; then
+        CMD="transparent-sops"
     else
-        echo "Error: Could not find 'filters' directory."
-        echo "Searched:"
-        echo "  - $SCRIPT_DIR/filters"
-        echo "  - $SCRIPT_DIR/../libexec/filters"
-        exit 1
+        CMD="$SCRIPT_PATH"
     fi
 
     echo "Initializing transparent-sops for this repository..."
-    echo "Using filters from: $FILTERS_DIR"
-
-    if [ ! -d "$FILTERS_DIR" ]; then
-        echo "Error: filters directory not found at $FILTERS_DIR"
-        exit 1
-    fi
 
     # Configure git
-    git config filter.sops-crypt.clean "$FILTERS_DIR/clean_filter.sh"
-    git config filter.sops-crypt.smudge "$FILTERS_DIR/smudge_filter.sh"
+    git config filter.sops-crypt.clean "$CMD filter clean"
+    git config filter.sops-crypt.smudge "$CMD filter smudge"
     git config filter.sops-crypt.required true
-    git config diff.sops-crypt.textconv "$FILTERS_DIR/diff_filter.sh"
+    git config diff.sops-crypt.textconv "$CMD filter diff"
 
     echo "Configuration applied."
     echo "Add the following to your .gitattributes to use it:"
     echo "* filter=sops-crypt diff=sops-crypt"
 
+elif [ "$COMMAND" = "filter" ]; then
+    SUBCOMMAND="$2"
+    case "$SUBCOMMAND" in
+        clean)
+            sops --encrypt --input-type binary --output-type binary /dev/stdin
+            ;;
+        smudge)
+            sops --decrypt --input-type binary --output-type binary /dev/stdin
+            ;;
+        diff)
+            FILE_PATH="$3"
+            if [ -z "$FILE_PATH" ]; then
+                echo "Usage: $0 filter diff <file>" >&2
+                exit 1
+            fi
+            if sops --decrypt --input-type binary --output-type binary "$FILE_PATH" 2>/dev/null; then
+                : # Success
+            else
+                cat "$FILE_PATH"
+            fi
+            ;;
+        *)
+            echo "Usage: $0 filter {clean|smudge|diff}"
+            exit 1
+            ;;
+    esac
+
 elif [ "$COMMAND" = "uninstall" ]; then
     echo "Uninstalling transparent-sops from this repository..."
     
     # Remove git config sections
-    # Suppress output if section doesn't exist
     git config --remove-section filter.sops-crypt 2>/dev/null || true
     git config --remove-section diff.sops-crypt 2>/dev/null || true
 
@@ -69,6 +81,6 @@ elif [ "$COMMAND" = "uninstall" ]; then
     echo "Remember to remove sops-crypt attributes from your .gitattributes file."
 
 else
-    echo "Usage: $0 {init|uninstall}"
+    echo "Usage: $0 {init|uninstall|filter}"
     exit 1
 fi

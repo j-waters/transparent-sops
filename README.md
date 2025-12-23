@@ -20,24 +20,21 @@ Inspired by `git-crypt` and `transcrypt`.
 
 ## Installation
 
-#### Homebrew (macOS/Linux)
+### Homebrew (macOS/Linux)
 
 You can install `transparent-sops` via my custom Homebrew tap:
 
 ```bash
-brew install jcwaters/tap/transparent-sops
+brew install j-waters/tap/transparent-sops
 ```
 
-#### Manual Installation
+### Direct Installation
 
-1. Clone this repository:
+1. **Download and install**:
    ```bash
-   git clone https://github.com/jcwaters/transparent-sops.git
-   cd transparent-sops
-   ```
-2. Run installation:
-   ```bash
-   ./transparent-sops init
+   curl -Lo transparent-sops https://raw.githubusercontent.com/j-waters/transparent-sops/main/transparent-sops
+   sudo install -m 755 transparent-sops /usr/local/bin/transparent-sops
+   rm transparent-sops
    ```
 
 ## Usage
@@ -59,7 +56,7 @@ brew install jcwaters/tap/transparent-sops
 config/prod.yaml.secret filter=sops-crypt diff=sops-crypt
 ```
 
-3. **Work as Usual**:
+4. **Work as Usual**:
     - `git add`: Files are automatically encrypted.
     - `git checkout`: Files are automatically decrypted.
     - `git diff`: Shows plaintext diffs.
@@ -84,6 +81,12 @@ but will not uninstall the tool from your system or remove any filters from your
 
 # Development
 
+## Testing
+
+```bash
+./test.sh
+```
+
 ## Release Process
 
 Releases are automated via GitHub Actions.
@@ -95,5 +98,5 @@ Releases are automated via GitHub Actions.
     ```
 
 2.  **Automation**:
-    - The `Release` workflow creates a GitHub Release with source archives.
-    - It automatically bumps the Homebrew formula in the `jcwaters/homebrew-tap` repository.
+    - The `Release` workflow creates a GitHub Release.
+    - It automatically creates a PR to bump the Homebrew formula in the `j-waters/homebrew-tap` repository.
